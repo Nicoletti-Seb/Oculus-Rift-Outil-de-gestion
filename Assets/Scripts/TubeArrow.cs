@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
+[ExecuteInEditMode]
 public class TubeArrow : MonoBehaviour {
 
     private readonly float CIRCLE_RADIUS_MAX = 2f * Mathf.PI;
@@ -89,5 +90,23 @@ public class TubeArrow : MonoBehaviour {
         }
 
     }
-	
+
+#if UNITY_EDITOR
+    void Update()
+    {
+        if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+        {
+            this.enabled = false;
+        }
+        else {
+            if (mesh != null)
+            {
+                mesh.Clear();
+            }
+
+            vertices.Clear();
+            Start();
+        }
+    }
+#endif
 }
