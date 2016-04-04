@@ -149,7 +149,8 @@ public class UniMoveTest : MonoBehaviour
 
 			// Set the rumble based on how much the trigger is down
 			move.SetRumble(move.Trigger);
-			moveObj.gameObject.transform.localRotation = move.Orientation;
+            moveObj.gameObject.transform.localRotation = new Quaternion(move.Orientation.x, -move.Orientation.y, -move.Orientation.z, move.Orientation.w);
+
 			i++;
 		}
 	}
