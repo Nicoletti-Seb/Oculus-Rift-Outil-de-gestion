@@ -171,9 +171,18 @@ public class UniMoveTest : MonoBehaviour
             selectCollisionObject(ref obj);
         }
 
-        if ( !haveCollision || move.GetButtonUp(PSMoveButton.Trigger) )
+        if ( move.GetButtonUp(PSMoveButton.Trigger) )
         {
             deselectCollisionObject();
+        }
+
+        if (collisionObject != null)
+        {
+            float distance = Vector3.Distance(moveObj.transform.position, collisionObject.transform.position);
+            float z = collisionObject.transform.localPosition.z;
+            Vector3 location = moveObj.transform.position + direction * distance;
+            location.z = z;
+            collisionObject.transform.localPosition = location;
         }
 
         Debug.DrawRay(sphereTransform.position, direction * 10, Color.green);
