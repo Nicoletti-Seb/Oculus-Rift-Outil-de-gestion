@@ -44,8 +44,10 @@ public class UniMoveTest : MonoBehaviour
 	// This is a list of graphical representations of move controllers (3d object)
 	private List<MoveController> moveObjs = new List<MoveController>();
 
+    
+    private GameObject collisionObject;
 
-	void Start()
+    void Start()
 	{
 		/* NOTE! We recommend that you limit the maximum frequency between frames.
 		 * This is because the controllers use Update() and not FixedUpdate(),
@@ -114,10 +116,9 @@ public class UniMoveTest : MonoBehaviour
 
 	void Update()
 	{
-		int i = 0;
-		foreach(UniMoveController move in moves)
+        for( int i = 0; i < moves.Count; i++ )
 		{
-
+            UniMoveController move = moves[i];
 			MoveController moveObj = moveObjs[i];
 
 			// Instead of this somewhat kludge-y check, we'd probably want to remove/destroy
@@ -148,14 +149,54 @@ public class UniMoveTest : MonoBehaviour
 			}
 
 			// Set the rumble based on how much the trigger is down
-			move.SetRumble(move.Trigger);
             moveObj.gameObject.transform.localRotation = new Quaternion(move.Orientation.x, -move.Orientation.y, -move.Orientation.z, move.Orientation.w);
 
-			i++;
-		}
+            rayUpdate(ref move, ref moveObj);
+        }
 	}
 
-	void HandleControllerDisconnected (object sender, EventArgs e)
+    private void rayUpdate(ref UniMoveController move, ref MoveController moveObj) {
+
+        Transform sphereTransform = moveObj.transform.Find("Sphere");
+        Transform capsuleTransform = moveObj.transform.Find("Capsule");
+        Vector3 heading = sphereTransform.position - capsuleTransform.transform.position;
+        Vector3 direction = heading.normalized;
+        RaycastHit hit;
+        Ray ray = new Ray(sphereTransform.position, direction);
+        
+        Boolean haveCollision = Physics.Raycast(ray, out hit);
+        if (haveCollision && move.GetButtonDown(PSMoveButton.Trigger))
+        {
+            GameObject obj = hit.collider.gameObject;
+            selectCollisionObject(ref obj);
+        }
+
+        if ( !haveCollision || move.GetButtonUp(PSMoveButton.Trigger) )
+        {
+            deselectCollisionObject();
+        }
+
+        Debug.DrawRay(sphereTransform.position, direction * 10, Color.green);
+    }
+
+    private void selectCollisionObject(ref GameObject collisionObject) {
+        this.collisionObject = collisionObject;
+        Renderer r = this.collisionObject.GetComponent<Renderer>();
+        r.material.SetColor("_Color", Color.blue);
+    }
+
+    private void deselectCollisionObject()
+    {
+        if (this.collisionObject == null) {
+            return;
+        }
+
+        Renderer r = this.collisionObject.GetComponent<Renderer>();
+        r.material.SetColor("_Color", Color.gray);
+        this.collisionObject = null;
+    }
+
+    void HandleControllerDisconnected (object sender, EventArgs e)
 	{
 		// TODO: Remove this disconnected controller from the list and maybe give an update to the player
 	}
