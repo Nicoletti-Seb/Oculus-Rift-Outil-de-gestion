@@ -36,16 +36,21 @@ using System.Collections.Generic;
 
 public class UniMoveTest : MonoBehaviour
 {
-	// This is the (3d object prototype in the scene)
-	private GameObject moveControllerPrefab;
+    private readonly float VISUALISATION_DIST = -10;
+
+    // This is the (3d object prototype in the scene)
+    private GameObject moveControllerPrefab;
 
 	// We save a list of Move controllers.
 	private List<UniMoveController> moves = new List<UniMoveController>();
 	// This is a list of graphical representations of move controllers (3d object)
 	private List<MoveController> moveObjs = new List<MoveController>();
 
-    
     private GameObject collisionObject;
+
+    private bool visualisationMode;
+    private Vector3 positionSave;
+    private Quaternion rotationSave;
 
     void Start()
 	{
@@ -137,7 +142,26 @@ public class UniMoveTest : MonoBehaviour
 			if (move.GetButtonDown(PSMoveButton.Circle))		{moveObj.SetLED(Color.cyan);move.SetLED(Color.cyan);}
 			else if(move.GetButtonDown(PSMoveButton.Cross)) 	{moveObj.SetLED(Color.red);move.SetLED(Color.red);}
 			else if(move.GetButtonDown(PSMoveButton.Square)) 	{moveObj.SetLED(Color.yellow);move.SetLED(Color.yellow);}
-			else if(move.GetButtonDown(PSMoveButton.Triangle)) 	{moveObj.SetLED(Color.magenta);move.SetLED(Color.magenta);}
+			else if(move.GetButtonDown(PSMoveButton.Triangle)) 	{
+                moveObj.SetLED(Color.magenta); move.SetLED(Color.magenta);
+
+                if (this.collisionObject != null && !visualisationMode)
+                {
+                    visualisationMode = true;
+                    positionSave = this.collisionObject.transform.localPosition;
+                    rotationSave = this.collisionObject.transform.localRotation;
+
+                    Vector3 location = this.collisionObject.transform.localPosition;
+                    location.Set(moveObj.transform.localPosition.x, moveObj.transform.localPosition.y, VISUALISATION_DIST);
+                    this.collisionObject.transform.localPosition = location;
+                }
+                else if( this.collisionObject != null ){
+                    visualisationMode = false;
+                    this.collisionObject.transform.localPosition = positionSave;
+                    this.collisionObject.transform.localRotation = rotationSave;
+                    deselectCollisionObject();
+                }
+            }
 
 			// On pressing the move button we reset the orientation as well.
 			// Remember to keep the controller leveled and pointing at the screen
@@ -151,9 +175,21 @@ public class UniMoveTest : MonoBehaviour
 			// Set the rumble based on how much the trigger is down
             moveObj.gameObject.transform.localRotation = new Quaternion(move.Orientation.x, -move.Orientation.y, -move.Orientation.z, move.Orientation.w);
 
-            rayUpdate(ref move, ref moveObj);
+
+            if (visualisationMode) {
+                visualisationModeUpdate(ref moveObj);
+            }
+            else
+            {
+                rayUpdate(ref move, ref moveObj);
+            }
+            
         }
 	}
+
+    private void visualisationModeUpdate(ref MoveController moveObj) {
+        this.collisionObject.transform.localRotation = moveObj.gameObject.transform.localRotation;
+    }
 
     private void rayUpdate(ref UniMoveController move, ref MoveController moveObj) {
 
@@ -176,13 +212,13 @@ public class UniMoveTest : MonoBehaviour
             deselectCollisionObject();
         }
 
-        if (collisionObject != null)
+        if (this.collisionObject != null)
         {
-            float distance = Vector3.Distance(moveObj.transform.position, collisionObject.transform.position);
-            float z = collisionObject.transform.localPosition.z;
+            float distance = Vector3.Distance(moveObj.transform.position, this.collisionObject.transform.position);
+            float z = this.collisionObject.transform.localPosition.z;
             Vector3 location = moveObj.transform.position + direction * distance;
             location.z = z;
-            collisionObject.transform.localPosition = location;
+            this.collisionObject.transform.localPosition = location;
         }
 
         Debug.DrawRay(sphereTransform.position, direction * 10, Color.green);
