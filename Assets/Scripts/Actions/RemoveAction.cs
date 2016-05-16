@@ -6,18 +6,14 @@ using UnityEngine;
 
 namespace Assets.Scripts.Actions
 {
-    class RemoveAction : UserAction
+    public class RemoveAction : UserAction
     {
-        public RemoveAction() {
-
-        }        
-
-        public void doAction(GameObject g)
+        public void doAction()
         {
             throw new NotImplementedException();
         }
 
-        public void undo(GameObject g)
+        public void undo()
         {
             throw new NotImplementedException();
         }

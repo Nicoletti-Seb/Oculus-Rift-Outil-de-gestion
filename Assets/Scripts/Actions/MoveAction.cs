@@ -6,19 +6,14 @@ using UnityEngine;
 
 namespace Assets.Scripts.Actions
 {
-    class MoveAction : UserAction
+    public class MoveAction : UserAction
     {
-        public MoveAction() 
-        {
-
-        }
-
-        public void doAction(GameObject g)
+        public void doAction()
         {
             throw new NotImplementedException();
         }
 
-        public void undo(GameObject g)
+        public void undo()
         {
             throw new NotImplementedException();
         }

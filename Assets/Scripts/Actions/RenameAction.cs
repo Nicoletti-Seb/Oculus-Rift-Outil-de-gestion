@@ -6,18 +6,14 @@ using UnityEngine;
 
 namespace Assets.Scripts.Actions
 {
-    class RenameAction : UserAction
+    public class RenameAction : UserAction
     {
-        public RenameAction() {
-
-        }        
-
-        public void doAction(GameObject g)
+        public void doAction()
         {
             throw new NotImplementedException();
         }
 
-        public void undo(GameObject g)
+        public void undo()
         {
             throw new NotImplementedException();
         }
