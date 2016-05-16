@@ -15,37 +15,23 @@ namespace Assets.Scripts.Inputs
     public abstract class Input
     {
 
-        private List<ManagerListener> listeners;
-        
+        private ManagerListener managerListener;
 
-        public void addListener(ManagerListener managerlistener)
+        public Input(ManagerListener managerListener)
         {
-            listeners.Add(managerlistener);
-        }
-
-        public void removeListener(ManagerListener managerlistener)
-        {
-            listeners.Remove(managerlistener);
+            this.managerListener = managerListener;
         }
 
         public void doAction(UserAction userAction) {
-            foreach (ManagerListener ml in listeners) {
-                ml.doAction(userAction);
-            }
+            managerListener.doAction(userAction);
         }
 
         public void undo() {
-            foreach (ManagerListener ml in listeners)
-            {
-                ml.undoAction();
-            }
+            managerListener.undoAction();
         }
 
         public void redo() {
-            foreach (ManagerListener ml in listeners)
-            {
-                ml.redoAction();
-            }
+            managerListener.redoAction();
         }
 
     }
