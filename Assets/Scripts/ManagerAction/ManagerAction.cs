@@ -1,26 +1,34 @@
-﻿using System.Collections.Generic;
+﻿using fr.unice.miage.og.actions;
+using System.Collections.Generic;
 using System.Linq;
-using Assets.Scripts.Actions;
+using System;
 
-namespace Assets.Scripts.ManagerAction
+namespace fr.unice.miage.og.Managers
 {
     /**
         This class allow to manage actions users. 
     */
     public class ManagerAction : ManagerListener
     {
-
         private LinkedList<UserAction> actionList;
         public List<UserAction> ActionList { get { return actionList.ToList(); } }
 
         private LinkedList<UserAction> actionUndoList;
         public List<UserAction> ActionUndoList { get { return actionUndoList.ToList(); } }
 
+        //Singleton
+        private static readonly ManagerAction instance = new ManagerAction();
+
         public ManagerAction() {
             actionList = new LinkedList<UserAction>();
             actionUndoList = new LinkedList<UserAction>();
         }
 
+        public static ManagerAction getInstance() {
+            return instance;
+        }
+
+        //Methods
         public void doAction(UserAction userAction)
         {
             userAction.doAction();
@@ -48,6 +56,5 @@ namespace Assets.Scripts.ManagerAction
             action.doAction();
             actionList.AddFirst(action);
         }
-
     }
 }

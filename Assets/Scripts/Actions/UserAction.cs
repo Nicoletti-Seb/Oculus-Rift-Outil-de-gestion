@@ -1,5 +1,5 @@
 ﻿
-namespace Assets.Scripts.Actions
+namespace fr.unice.miage.og.actions
 {
     public interface UserAction
     {

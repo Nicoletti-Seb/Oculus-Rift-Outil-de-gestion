@@ -1,9 +1,7 @@
-﻿using Assets.Scripts.Actions;
-using System;
-using UnityEngine;
+﻿using fr.unice.miage.og.actions;
 
 
-namespace Assets.Scripts.ManagerAction
+namespace fr.unice.miage.og.Managers
 {
     public interface ManagerListener
     {

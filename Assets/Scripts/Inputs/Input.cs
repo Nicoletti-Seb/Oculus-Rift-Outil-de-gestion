@@ -1,26 +1,17 @@
-﻿using Assets.Scripts.Actions;
-using Assets.Scripts.ManagerAction;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using fr.unice.miage.og.actions;
+using fr.unice.miage.og.Managers;
+using UnityEngine;
 
-namespace Assets.Scripts.Inputs
+namespace fr.unice.miage.og.flux
 {
     /**
 
         This class allow to represente an input.
 
     */
-    public abstract class Input
+    public abstract class Input : MonoBehaviour
     {
-
-        private ManagerListener managerListener;
-
-        public Input(ManagerListener managerListener)
-        {
-            this.managerListener = managerListener;
-        }
+        protected ManagerListener managerListener = ManagerAction.getInstance();
 
         public void doAction(UserAction userAction) {
             managerListener.doAction(userAction);

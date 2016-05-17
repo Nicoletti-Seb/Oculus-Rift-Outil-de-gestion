@@ -1,12 +1,9 @@
 ﻿using UnityEngine;
 using System.Collections;
-using Assets.Scripts.ManagerAction;
 
-namespace Assets.Scripts.Inputs
+namespace fr.unice.miage.og.flux
 {
     public class InputControler : Input
     {
-        public InputControler(ManagerListener managerListener):base(managerListener)
-        { }
     }
 }

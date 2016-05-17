@@ -1,13 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using UnityEngine;
 
-namespace Assets.Scripts.Actions
+namespace fr.unice.miage.og.actions
 {
     public class MoveAction : UserAction
     {
+
         public void doAction()
         {
             throw new NotImplementedException();
