@@ -13,13 +13,11 @@
     <TargetFrameworkIdentifier>.NETFramework</TargetFrameworkIdentifier>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <TargetFrameworkProfile>Unity Web v3.5</TargetFrameworkProfile>
-    <CompilerResponseFile>
-    </CompilerResponseFile>
+    <CompilerResponseFile></CompilerResponseFile>
     <UnityProjectType>Game:1</UnityProjectType>
     <UnityBuildTarget>WebPlayer:6</UnityBuildTarget>
     <UnityVersion>5.3.4f1</UnityVersion>
-    <RootNamespace>
-    </RootNamespace>
+    <RootNamespace></RootNamespace>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -68,9 +66,9 @@
     <Compile Include="Assets\Scripts\Actions\RenameAction.cs" />
     <Compile Include="Assets\Scripts\Actions\UserAction.cs" />
     <Compile Include="Assets\Scripts\Inputs\Input.cs" />
+    <Compile Include="Assets\Scripts\Inputs\InputControler.cs" />
     <Compile Include="Assets\Scripts\Inputs\InputKeyboard.cs" />
     <Compile Include="Assets\Scripts\Inputs\InputPsMove.cs" />
-    <Compile Include="Assets\Scripts\Inputs\InputControler.cs" />
     <Compile Include="Assets\Scripts\ManagerAction\ManagerAction.cs" />
     <Compile Include="Assets\Scripts\ManagerAction\ManagerListener.cs" />
     <Compile Include="Assets\Scripts\ScriptExample.cs" />

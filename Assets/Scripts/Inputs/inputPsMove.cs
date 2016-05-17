@@ -1,39 +1,39 @@
- /**
- * UniMove API - A Unity plugin for the PlayStation Move motion controller
- * Copyright (C) 2012, 2013, Copenhagen Game Collective (http://www.cphgc.org)
- * 					         Patrick Jarnfelt
- * 					         Douglas Wilson (http://www.doougle.net)
- *
- *
- * All rights reserved.
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions are met:
- *
- *    1. Redistributions of source code must retain the above copyright
- *       notice, this list of conditions and the following disclaimer.
- *
- *    2. Redistributions in binary form must reproduce the above copyright
- *       notice, this list of conditions and the following disclaimer in the
- *       documentation and/or other materials provided with the distribution.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
- * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
- * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
- * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
- * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
- * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
- * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
- * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
- * POSSIBILITY OF SUCH DAMAGE.
- **/
+/**
+* UniMove API - A Unity plugin for the PlayStation Move motion controller
+* Copyright (C) 2012, 2013, Copenhagen Game Collective (http://www.cphgc.org)
+* 					         Patrick Jarnfelt
+* 					         Douglas Wilson (http://www.doougle.net)
+*
+*
+* All rights reserved.
+*
+* Redistribution and use in source and binary forms, with or without
+* modification, are permitted provided that the following conditions are met:
+*
+*    1. Redistributions of source code must retain the above copyright
+*       notice, this list of conditions and the following disclaimer.
+*
+*    2. Redistributions in binary form must reproduce the above copyright
+*       notice, this list of conditions and the following disclaimer in the
+*       documentation and/or other materials provided with the distribution.
+*
+* THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+* AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+* IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+* ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+* LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+* CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+* SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+* INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+* CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+* ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+* POSSIBILITY OF SUCH DAMAGE.
+**/
 
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-
+using fr.unice.miage.og.actions;
 
 namespace fr.unice.miage.og.flux
 {
@@ -50,11 +50,16 @@ namespace fr.unice.miage.og.flux
         // This is a list of graphical representations of move controllers (3d object)
         private List<MoveController> moveObjs = new List<MoveController>();
 
+        //Object Selection
         private GameObject collisionObject;
 
+        //Visualisation mode
         private bool visualisationMode;
         private Vector3 positionSave;
         private Quaternion rotationSave;
+
+        //Actions
+        private MoveAction moveAction;
 
         void Start()
         {
@@ -109,7 +114,7 @@ namespace fr.unice.miage.og.flux
                     move.InitOrientation();
                     move.ResetOrientation();
 
-                    // Start all controllers with a white LED
+                    // Start all controllers with a white LEDC:\Users\Seb\Desktop\Projet_oculus_miage\Oculus-Rift-Outil-de-gestion\Assets\Scripts\Inputs\inputPsMove.cs
                     move.SetLED(Color.white);
 
                     // adding the MoveController Objects on screen
@@ -171,15 +176,19 @@ namespace fr.unice.miage.og.flux
                         deselectCollisionObject();
                     }
                 }
-
-                // On pressing the move button we reset the orientation as well.
-                // Remember to keep the controller leveled and pointing at the screen
-                // Reset once in a while because of drifting
-                else if (move.GetButtonDown(PSMoveButton.Move))
+                else if (move.GetButtonDown(PSMoveButton.PS))
                 {
+                    //Reset orientation
                     move.ResetOrientation();
                     moveObj.SetLED(Color.black);
                     move.SetLED(Color.black);
+                }
+                else if (move.GetButtonDown(PSMoveButton.Start)) {
+                    base.managerListener.redoAction();
+                }
+                else if (move.GetButtonDown(PSMoveButton.Select))
+                {
+                    base.managerListener.undoAction();
                 }
 
                 // Set the rumble based on how much the trigger is down
@@ -218,10 +227,18 @@ namespace fr.unice.miage.og.flux
             {
                 GameObject obj = hit.collider.gameObject;
                 selectCollisionObject(ref obj);
+                this.moveAction = new MoveAction(obj);
             }
 
             if (move.GetButtonUp(PSMoveButton.Trigger))
             {
+                //set the position
+                if (this.collisionObject != null) { 
+                    Vector3 position = this.collisionObject.transform.localPosition;
+                    this.moveAction.NewLocation = new Vector3(position.x, position.y, position.z);
+                    base.managerListener.doAction(this.moveAction);
+                }
+
                 deselectCollisionObject();
             }
 

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System;
+using UnityEngine;
 
 namespace fr.unice.miage.og.Managers
 {
@@ -37,7 +38,13 @@ namespace fr.unice.miage.og.Managers
 
         public void undoAction()
         {
+            if (actionList.Count <= 0)
+            {
+                return;
+            }
+
             //pop the first element in actionList
+            Debug.Log("Size " + actionList.Count);
             UserAction action = actionList.First();
             actionList.RemoveFirst();
 
@@ -48,6 +55,10 @@ namespace fr.unice.miage.og.Managers
 
         public void redoAction()
         {
+            if (actionUndoList.Count <= 0) {
+                return;
+            }
+
             //pop the first element in undo list
             UserAction action = actionUndoList.First();
             actionUndoList.RemoveFirst();
