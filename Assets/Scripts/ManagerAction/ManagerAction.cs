@@ -11,6 +11,9 @@ namespace fr.unice.miage.og.Managers
     */
     public class ManagerAction : ManagerListener
     {
+
+        private int countUndo;
+
         private LinkedList<UserAction> actionList;
         public List<UserAction> ActionList { get { return actionList.ToList(); } }
 
@@ -34,6 +37,13 @@ namespace fr.unice.miage.og.Managers
         {
             userAction.doAction();
             actionList.AddFirst(userAction);
+
+            //cancel old actions
+            if (countUndo > 0)
+            {
+                countUndo = 0;
+                actionUndoList.Clear();
+            }
         }
 
         public void undoAction()
@@ -44,13 +54,14 @@ namespace fr.unice.miage.og.Managers
             }
 
             //pop the first element in actionList
-            Debug.Log("Size " + actionList.Count);
             UserAction action = actionList.First();
             actionList.RemoveFirst();
 
             //action undo
             action.undo();
             actionUndoList.AddFirst(action);
+
+            countUndo++;
         }
 
         public void redoAction()
@@ -66,6 +77,8 @@ namespace fr.unice.miage.og.Managers
             //action redo
             action.doAction();
             actionList.AddFirst(action);
+
+            countUndo--;
         }
     }
 }
