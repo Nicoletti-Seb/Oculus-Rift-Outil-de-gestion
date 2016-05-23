@@ -40,6 +40,8 @@ namespace fr.unice.miage.og.flux
     public class InputPsMove : Input
     {
 
+        private Material CUBE_MATERIAL;
+
         private readonly float VISUALISATION_DIST = -10;
 
         // This is the (3d object prototype in the scene)
@@ -63,6 +65,8 @@ namespace fr.unice.miage.og.flux
 
         void Start()
         {
+            //Load DATA
+            CUBE_MATERIAL  = Resources.Load("Materials/color") as Material;
 
             /* NOTE! We recommend that you limit the maximum frequency between frames.
 		     * This is because the controllers use Update() and not FixedUpdate(),
@@ -140,20 +144,30 @@ namespace fr.unice.miage.og.flux
                 // the now-defunct controller in the disconnected event handler below.
                 if (move.Disconnected) continue;
 
-                // Button events. Works like Unity's Input.GetButton
-                if (move.GetButtonDown(PSMoveButton.Circle))
-                {
-                    Debug.Log("Circle Down");
-                }
-                if (move.GetButtonUp(PSMoveButton.Circle))
-                {
-                    Debug.Log("Circle UP");
-                }
 
                 // Change the colors of the LEDs based on which button has just been pressed:
                 if (move.GetButtonDown(PSMoveButton.Circle)) { moveObj.SetLED(Color.cyan); move.SetLED(Color.cyan); }
-                else if (move.GetButtonDown(PSMoveButton.Cross)) { moveObj.SetLED(Color.red); move.SetLED(Color.red); }
-                else if (move.GetButtonDown(PSMoveButton.Square)) { moveObj.SetLED(Color.yellow); move.SetLED(Color.yellow); }
+                else if (move.GetButtonDown(PSMoveButton.Cross)) {
+                    moveObj.SetLED(Color.red); move.SetLED(Color.red);
+
+                    //Remove object
+                    if (this.collisionObject != null) {
+                        RemoveAction removeAction = new RemoveAction(this.collisionObject);
+                        base.managerListener.doAction(removeAction);
+                        deselectCollisionObject();
+                    }
+                    
+
+                }
+                else if (move.GetButtonDown(PSMoveButton.Square)) {
+                    moveObj.SetLED(Color.yellow); move.SetLED(Color.yellow);
+
+                    //Create object 
+                    AddAction addAction = new AddAction(PrimitiveType.Cube, new Vector3(0,0,-8), Quaternion.identity);
+                    addAction.Material = CUBE_MATERIAL;
+                    base.managerListener.doAction(addAction);
+
+                }
                 else if (move.GetButtonDown(PSMoveButton.Triangle))
                 {
                     moveObj.SetLED(Color.magenta); move.SetLED(Color.magenta);
