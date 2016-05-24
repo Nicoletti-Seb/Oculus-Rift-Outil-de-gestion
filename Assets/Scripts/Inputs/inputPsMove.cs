@@ -34,15 +34,17 @@ using UnityEngine;
 using System;
 using System.Collections.Generic;
 using fr.unice.miage.og.actions;
+using System.Text;
 
 namespace fr.unice.miage.og.flux
 {
     public class InputPsMove : Input
     {
-
-        private Material CUBE_MATERIAL;
+        private readonly String ALPHABET = " abcdefghijklmnopqrstuvwxyz0123456789";
 
         private readonly float VISUALISATION_DIST = -10;
+
+        private Material CUBE_MATERIAL;
 
         // This is the (3d object prototype in the scene)
         private GameObject moveControllerPrefab;
@@ -59,6 +61,12 @@ namespace fr.unice.miage.og.flux
         private bool visualisationMode;
         private Vector3 positionSave;
         private Quaternion rotationSave;
+
+        //Write mode
+        private bool writeMode;
+        private TextMesh textMesh;
+        private int indexAlphabet;
+        private RenameAction renameAction;
 
         //Actions
         private MoveAction moveAction;
@@ -101,8 +109,6 @@ namespace fr.unice.miage.og.flux
                     continue;
                 }
 
-
-
                 // This example program only uses Bluetooth-connected controllers
                 PSMoveConnectionType conn = move.ConnectionType;
                 if (conn == PSMoveConnectionType.Unknown || conn == PSMoveConnectionType.USB)
@@ -144,9 +150,25 @@ namespace fr.unice.miage.og.flux
                 // the now-defunct controller in the disconnected event handler below.
                 if (move.Disconnected) continue;
 
+                if (writeMode) {
+                    updateWriteMode(ref moveObj, ref move);
+                    return;
+                }
+
 
                 // Change the colors of the LEDs based on which button has just been pressed:
-                if (move.GetButtonDown(PSMoveButton.Circle)) { moveObj.SetLED(Color.cyan); move.SetLED(Color.cyan); }
+                if (move.GetButtonDown(PSMoveButton.Circle)) {
+                    moveObj.SetLED(Color.cyan); move.SetLED(Color.cyan);
+
+                    if (this.collisionObject != null && this.collisionObject.GetComponentInChildren<TextMesh>() != null ) {
+                        textMesh = this.collisionObject.GetComponentInChildren<TextMesh>();
+                        textMesh.text += " "; // the space to show the choice letter
+                        renameAction = new RenameAction(textMesh);
+                        writeMode = true;
+                    }
+
+                    
+                }
                 else if (move.GetButtonDown(PSMoveButton.Cross)) {
                     moveObj.SetLED(Color.red); move.SetLED(Color.red);
 
@@ -219,6 +241,51 @@ namespace fr.unice.miage.og.flux
                 }
 
             }
+        }
+
+        private void updateWriteMode(ref MoveController moveObj, ref UniMoveController move) {
+            //update psmove rotation
+            moveObj.gameObject.transform.localRotation = new Quaternion(move.Orientation.x, -move.Orientation.y, -move.Orientation.z, move.Orientation.w);
+
+            if ( move.GetButtonDown(PSMoveButton.Circle) ) {
+                //We remove the last letter because it's only a letter to show the next letter to add.
+                String newText = this.textMesh.text.Substring(0, this.textMesh.text.Length - 1);
+                renameAction.NewName = newText;
+                base.managerListener.doAction(renameAction);
+
+                this.writeMode = false;
+                this.textMesh = null;
+                deselectCollisionObject();
+                return;
+            }
+
+            StringBuilder textPanel = new StringBuilder(this.textMesh.text);
+
+            if (move.GetButtonDown(PSMoveButton.Square))
+            {
+                // remove last letter
+                textPanel.Length = (textPanel.Length > 1) ? textPanel.Length - 1 : 1;
+            }
+            else if (move.GetButtonDown(PSMoveButton.Triangle))
+            {
+                // add letter
+                textPanel.Append(ALPHABET[indexAlphabet]);
+            }
+            else {
+                //change last letter
+                float z = moveObj.transform.rotation.eulerAngles.z;
+                int step = 360 / ALPHABET.Length;
+                this.indexAlphabet = (int) (z / step);
+
+                if (indexAlphabet >= ALPHABET.Length) {
+                    indexAlphabet = 0;
+                }
+                textPanel[textPanel.Length - 1] = ALPHABET[indexAlphabet];
+            }
+
+            //update the text panel
+            this.textMesh.text = textPanel.ToString();
+
         }
 
         private void visualisationModeUpdate(ref MoveController moveObj)
