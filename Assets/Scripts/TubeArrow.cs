@@ -6,6 +6,7 @@ using System.Collections.Generic;
 public class TubeArrow : MonoBehaviour {
 
     private readonly float CIRCLE_RADIUS_MAX = 2f * Mathf.PI;
+    private readonly float WIDTH_POINTER_ARROW = 2.0f;
 
     private Mesh mesh;
     private List<Vector3> vertices = new List<Vector3>();
@@ -15,8 +16,17 @@ public class TubeArrow : MonoBehaviour {
     public int nbPointCircle = 10;
     public Material material;
 
-    void Start () {
-        createPointCircle(new Vector3(0, 0, 0));
+    public GameObject objSrc;
+    public GameObject objDest;
+    private GameObject pointerArrow;
+
+    void Start() {
+
+        if( pointerArrow == null) {
+            pointerArrow = transform.Find("pointer").gameObject;
+        }
+
+        initPointCircle();
 
         foreach (Vector3 point in points) {
             createPointCircle(point);
@@ -24,6 +34,45 @@ public class TubeArrow : MonoBehaviour {
 
         initMesh();
         updateMesh();
+    }
+
+    private void initPointCircle() {
+        createPointCircle(new Vector3(0, 0, 0));
+
+        if (objSrc == null || objDest == null) {
+            return;
+        }
+
+        //Connect the Arrow
+        float srcHalfWidth = objSrc.transform.localScale.x / 2f;
+        float destHalfWidth = objDest.transform.localScale.x / 2f;
+        Vector3 destPosition = this.objDest.transform.localPosition;
+        Vector3 srcPosition = this.objSrc.transform.localPosition;
+
+        Vector3 location = new Vector3(0, 0, srcPosition.z); // our new location
+        Vector3 distCenterCircle = new Vector3(); // distance between the arrow pointer and the target
+        Vector3 anglePointerArrow = new Vector3(); // change the pointer orientation 
+
+        //Alert!!  the x axis is reverse ( positif value is in the left side ) 
+        if ( destPosition.x  > srcPosition.x )
+        {//destination object is left
+            location.x = srcPosition.x + srcHalfWidth + WIDTH_POINTER_ARROW;
+            distCenterCircle.x = location.x - (destPosition.x - destHalfWidth);
+            anglePointerArrow.z = 90;
+        }
+        else{//destination object is right
+            location.x = srcPosition.x - srcHalfWidth - WIDTH_POINTER_ARROW;
+            distCenterCircle.x = location.x - (destPosition.x + destHalfWidth);
+            anglePointerArrow.z = -90;
+        }
+
+        location.y = srcPosition.y;
+        distCenterCircle.y = destPosition.y - location.y;
+
+        //update
+        pointerArrow.transform.localEulerAngles = anglePointerArrow;
+        this.transform.localPosition = location;
+        createPointCircle(distCenterCircle);
     }
 
     private void initMesh() {
@@ -91,22 +140,21 @@ public class TubeArrow : MonoBehaviour {
 
     }
 
+    public void link(GameObject objSrc, GameObject objDest) {
+        this.objSrc = objSrc;
+        this.objDest = objDest;
+    }
+
 #if UNITY_EDITOR
     void Update()
     {
-        if (UnityEditor.EditorApplication.isPlayingOrWillChangePlaymode)
+        if (mesh != null)
         {
-            this.enabled = false;
+            mesh.Clear();
         }
-        else {
-            if (mesh != null)
-            {
-                mesh.Clear();
-            }
 
-            vertices.Clear();
-            Start();
-        }
+        vertices.Clear();
+        Start();
     }
 #endif
 }
