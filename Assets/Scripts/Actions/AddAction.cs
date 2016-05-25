@@ -12,9 +12,6 @@ namespace fr.unice.miage.og.actions
         private Vector3 position;
         public Vector3 Position { get { return position; } }
 
-        private Quaternion rotation;
-        public Quaternion Rotation { get { return rotation; } }
-
         private Material material;
         public Material Material { get { return material; } set { material = value; } }
 
@@ -23,17 +20,15 @@ namespace fr.unice.miage.og.actions
         private String path;
 
 
-        public AddAction(String path, Vector3 position, Quaternion rotation) {
+        public AddAction(String path, Vector3 position) {
             this.path = path;
             this.position = position;
-            this.rotation = rotation;
         }
 
-        public AddAction(PrimitiveType primitiveType, Vector3 position, Quaternion rotation)
+        public AddAction(PrimitiveType primitiveType, Vector3 position)
         {
             this.primitiveType = primitiveType;
             this.position = position;
-            this.rotation = rotation;
         }
 
         public void doAction()
@@ -46,11 +41,11 @@ namespace fr.unice.miage.og.actions
                     gameObject = GameObject.CreatePrimitive((PrimitiveType) primitiveType);
                 }
                 else {
-                    gameObject = Resources.Load(path) as GameObject;
+                    gameObject = GameObject.Instantiate(Resources.Load(path) as GameObject);
                 }
 
                 gameObject.transform.localPosition = this.position;
-                gameObject.transform.localRotation = this.rotation;
+                
             }
             else {
                 //Reactived the object

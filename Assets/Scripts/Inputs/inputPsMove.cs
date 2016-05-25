@@ -185,8 +185,7 @@ namespace fr.unice.miage.og.flux
                     moveObj.SetLED(Color.yellow); move.SetLED(Color.yellow);
 
                     //Create object 
-                    AddAction addAction = new AddAction(PrimitiveType.Cube, new Vector3(0,0,-8), Quaternion.identity);
-                    addAction.Material = CUBE_MATERIAL;
+                    AddAction addAction = new AddAction("Prefab/Panel", new Vector3(0,0,-8));
                     base.managerListener.doAction(addAction);
 
                 }
