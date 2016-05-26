@@ -51,13 +51,13 @@
      <Compile Include="Assets\Scripts\Actions\RenameAction.cs" />
      <Compile Include="Assets\Scripts\Actions\UserAction.cs" />
      <Compile Include="Assets\Scripts\Inputs\Input.cs" />
+     <Compile Include="Assets\Scripts\Inputs\InputKeyboard.cs" />
      <Compile Include="Assets\Scripts\Inputs\inputControler.cs" />
-     <Compile Include="Assets\Scripts\Inputs\inputKeyboard.cs" />
      <Compile Include="Assets\Scripts\Inputs\inputPsMove.cs" />
      <Compile Include="Assets\Scripts\ManagerAction\ManagerAction.cs" />
      <Compile Include="Assets\Scripts\ManagerAction\ManagerListener.cs" />
-     <Compile Include="Assets\Scripts\ObjetGraphique\ObjetCenter.cs" />
      <Compile Include="Assets\Scripts\ScriptExample.cs" />
+     <Compile Include="Assets\Scripts\Selector\Node.cs" />
      <Compile Include="Assets\Scripts\TubeArrow.cs" />
      <Compile Include="Assets\Scripts\psmove\MoveController.cs" />
      <Compile Include="Assets\Scripts\psmove\UniMoveController.cs" />
