@@ -119,6 +119,7 @@ namespace fr.unice.miage.og.flux
                 {
                     moves.Add(move);
 
+                    
                     move.OnControllerDisconnected += HandleControllerDisconnected;
 
                     move.InitOrientation();
@@ -149,6 +150,8 @@ namespace fr.unice.miage.og.flux
                 // Instead of this somewhat kludge-y check, we'd probably want to remove/destroy
                 // the now-defunct controller in the disconnected event handler below.
                 if (move.Disconnected) continue;
+
+
 
                 if (writeMode) {
                     updateWriteMode(ref moveObj, ref move);
@@ -184,9 +187,18 @@ namespace fr.unice.miage.og.flux
                 else if (move.GetButtonDown(PSMoveButton.Square)) {
                     moveObj.SetLED(Color.yellow); move.SetLED(Color.yellow);
 
-                    //Create object 
-                    AddAction addAction = new AddAction("Prefab/Panel", new Vector3(0,0,-8));
-                    base.managerListener.doAction(addAction);
+                    if (collisionObject != null) {
+
+                        //Create object 
+                        AddAction addAction = new AddAction("Prefab/Panel", new Vector3(0, 0, -8));
+                        base.managerListener.doAction(addAction);
+                        GameObject objectCreated = addAction.GameObject;
+
+                        //create tuve
+                        GameObject tubeObject = GameObject.Instantiate(Resources.Load("Prefab/Tube") as GameObject);
+                        TubeArrow tube = tubeObject.GetComponent<TubeArrow>();
+                        tube.link(collisionObject, objectCreated);
+                    }
 
                 }
                 else if (move.GetButtonDown(PSMoveButton.Triangle))

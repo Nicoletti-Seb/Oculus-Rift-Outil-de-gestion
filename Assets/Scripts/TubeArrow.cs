@@ -22,8 +22,8 @@ public class TubeArrow : MonoBehaviour {
 
     void Start() {
 
-        if( pointerArrow == null) {
-            pointerArrow = transform.Find("pointer").gameObject;
+        if( pointerArrow == null && objDest != null) {
+            pointerArrow = objDest.transform.Find("pointer").gameObject;
         }
 
         initPointCircle();
@@ -39,7 +39,7 @@ public class TubeArrow : MonoBehaviour {
     private void initPointCircle() {
         createPointCircle(new Vector3(0, 0, 0));
 
-        if (objSrc == null || objDest == null) {
+        if (objSrc == null || objDest == null || !objSrc.activeSelf || !objDest.activeSelf) {
             return;
         }
 
@@ -49,29 +49,34 @@ public class TubeArrow : MonoBehaviour {
         Vector3 destPosition = this.objDest.transform.localPosition;
         Vector3 srcPosition = this.objSrc.transform.localPosition;
 
-        Vector3 location = new Vector3(0, 0, srcPosition.z); // our new location
+        Vector3 locationSrc= new Vector3(0, 0, srcPosition.z);
+        Vector3 locationArrow = new Vector3(0, 0, srcPosition.z);
         Vector3 distCenterCircle = new Vector3(); // distance between the arrow pointer and the target
         Vector3 anglePointerArrow = new Vector3(); // change the pointer orientation 
 
-        //Alert!!  the x axis is reverse ( positif value is in the left side ) 
+        //Alert the x axis is inverse. ( positifs values are in the left side)
         if ( destPosition.x  > srcPosition.x )
         {//destination object is left
-            location.x = srcPosition.x + srcHalfWidth + WIDTH_POINTER_ARROW;
-            distCenterCircle.x = location.x - (destPosition.x - destHalfWidth);
-            anglePointerArrow.z = 90;
-        }
-        else{//destination object is right
-            location.x = srcPosition.x - srcHalfWidth - WIDTH_POINTER_ARROW;
-            distCenterCircle.x = location.x - (destPosition.x + destHalfWidth);
+            locationArrow.x = destPosition.x - destHalfWidth - WIDTH_POINTER_ARROW;
+            locationSrc.x = srcPosition.x + srcHalfWidth;
+            distCenterCircle.x = locationArrow.x - locationSrc.x;
             anglePointerArrow.z = -90;
         }
+        else{//destination object is right
+            locationArrow.x = destPosition.x + destHalfWidth + WIDTH_POINTER_ARROW;
+            locationSrc.x = srcPosition.x - srcHalfWidth;
+            distCenterCircle.x = locationArrow.x - locationSrc.x;
+            anglePointerArrow.z = 90;
+        }
 
-        location.y = srcPosition.y;
-        distCenterCircle.y = destPosition.y - location.y;
+        locationSrc.y = srcPosition.y;
+        locationArrow.y = destPosition.y;
+        distCenterCircle.y = destPosition.y - locationSrc.y;
 
         //update
         pointerArrow.transform.localEulerAngles = anglePointerArrow;
-        this.transform.localPosition = location;
+        pointerArrow.transform.position = locationArrow;
+        this.transform.position = locationSrc;
         createPointCircle(distCenterCircle);
     }
 
