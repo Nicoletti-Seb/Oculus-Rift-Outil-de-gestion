@@ -55,7 +55,7 @@ namespace fr.unice.miage.og.flux
         private List<MoveController> moveObjs = new List<MoveController>();
 
         //Object Selection
-        private GameObject collisionObject;
+        private GameObject objectSelected;
 
         //Visualisation mode
         private bool visualisationMode;
@@ -66,10 +66,11 @@ namespace fr.unice.miage.og.flux
         private bool writeMode;
         private TextMesh textMesh;
         private int indexAlphabet;
-        private RenameAction renameAction;
 
         //Actions
         private MoveAction moveAction;
+        private RenameAction renameAction;
+
 
         void Start()
         {
@@ -158,72 +159,33 @@ namespace fr.unice.miage.og.flux
                     return;
                 }
 
-
                 // Change the colors of the LEDs based on which button has just been pressed:
                 if (move.GetButtonDown(PSMoveButton.Circle)) {
                     moveObj.SetLED(Color.cyan); move.SetLED(Color.cyan);
-
-                    if (this.collisionObject != null && this.collisionObject.GetComponentInChildren<TextMesh>() != null ) {
-                        textMesh = this.collisionObject.GetComponentInChildren<TextMesh>();
-                        textMesh.text += " "; // the space to show the choice letter
-                        renameAction = new RenameAction(textMesh);
-                        writeMode = true;
-                    }
-
-                    
+                    activedWriteMode();
                 }
                 else if (move.GetButtonDown(PSMoveButton.Cross)) {
                     moveObj.SetLED(Color.red); move.SetLED(Color.red);
-
-                    //Remove object
-                    if (this.collisionObject != null) {
-                        RemoveAction removeAction = new RemoveAction(this.collisionObject);
-                        base.managerListener.doAction(removeAction);
-                        deselectCollisionObject();
-                    }
-                    
-
+                    removeObject();
                 }
                 else if (move.GetButtonDown(PSMoveButton.Square)) {
                     moveObj.SetLED(Color.yellow); move.SetLED(Color.yellow);
-
-                    if (collisionObject != null) {
-
-                        //Create object 
-                        AddAction addAction = new AddAction("Prefab/Panel", new Vector3(0, 0, -8));
-                        base.managerListener.doAction(addAction);
-                        GameObject objectCreated = addAction.GameObject;
-
-                        //create tuve
-                        GameObject tubeObject = GameObject.Instantiate(Resources.Load("Prefab/Tube") as GameObject);
-                        TubeArrow tube = tubeObject.GetComponent<TubeArrow>();
-                        tube.link(collisionObject, objectCreated);
-                    }
-
+                    addObject();
                 }
                 else if (move.GetButtonDown(PSMoveButton.Triangle))
                 {
                     moveObj.SetLED(Color.magenta); move.SetLED(Color.magenta);
 
-                    if (this.collisionObject != null && !visualisationMode)
+                    if (this.objectSelected != null && !visualisationMode)
                     {
-                        visualisationMode = true;
-                        positionSave = this.collisionObject.transform.localPosition;
-                        rotationSave = this.collisionObject.transform.localRotation;
-
-                        Vector3 location = this.collisionObject.transform.localPosition;
-                        location.Set(moveObj.transform.localPosition.x, moveObj.transform.localPosition.y, VISUALISATION_DIST);
-                        this.collisionObject.transform.localPosition = location;
+                        activedVisualisationMode(ref moveObj);
                     }
-                    else if (this.collisionObject != null)
+                    else if (this.objectSelected != null)
                     {
-                        visualisationMode = false;
-                        this.collisionObject.transform.localPosition = positionSave;
-                        this.collisionObject.transform.localRotation = rotationSave;
-                        deselectCollisionObject();
+                        desactivedVisualisationMode();
                     }
                 }
-                else if (move.GetButtonDown(PSMoveButton.PS))
+                else if (move.GetButtonDown(PSMoveButton.PS) ||  move.GetButtonDown(PSMoveButton.Move) )
                 {
                     //Reset orientation
                     move.ResetOrientation();
@@ -244,16 +206,93 @@ namespace fr.unice.miage.og.flux
 
                 if (visualisationMode)
                 {
-                    visualisationModeUpdate(ref moveObj);
+                    updateVisualisationMode(ref moveObj);
                 }
                 else
                 {
-                    rayUpdate(ref move, ref moveObj);
+                    updateRay(ref move, ref moveObj);
                 }
 
             }
         }
 
+
+        /**
+            Allow to actived the visualisation mode.
+        */
+        private void activedVisualisationMode(ref MoveController moveObj) {
+            visualisationMode = true;
+            positionSave = this.objectSelected.transform.localPosition;
+            rotationSave = this.objectSelected.transform.localRotation;
+
+            Vector3 location = this.objectSelected.transform.localPosition;
+            location.Set(moveObj.transform.localPosition.x, moveObj.transform.localPosition.y, VISUALISATION_DIST);
+            this.objectSelected.transform.localPosition = location;
+        }
+
+        /**
+            desactived the visualisation mode
+        */
+        private void desactivedVisualisationMode() {
+            visualisationMode = false;
+            this.objectSelected.transform.localPosition = positionSave;
+            this.objectSelected.transform.localRotation = rotationSave;
+            deselectCollisionObject();
+        }
+
+        /**
+            Actived the writeMode
+
+        */
+        private void activedWriteMode() {
+            if (this.objectSelected != null && this.objectSelected.GetComponentInChildren<TextMesh>() != null)
+            {
+                textMesh = this.objectSelected.GetComponentInChildren<TextMesh>();
+                textMesh.text += " "; // the space to show the choice letter
+                renameAction = new RenameAction(textMesh);
+                writeMode = true;
+            }
+        }
+
+        /**
+            Allow to disable an the selected object. 
+        */
+        private void removeObject() {
+            //Remove object
+            if (this.objectSelected != null)
+            {
+                RemoveAction removeAction = new RemoveAction(this.objectSelected);
+                base.managerListener.doAction(removeAction);
+                deselectCollisionObject();
+            }
+        }
+
+        /**
+            Create a new text panel and a arrow to do the link with 
+            the selected object.
+        */
+        private void addObject() {
+            if (objectSelected == null)
+            {
+                return;
+            }
+                
+            //Create object 
+            AddAction addAction = new AddAction("Prefab/Panel", new Vector3(0, 0, -8));
+            base.managerListener.doAction(addAction);
+            GameObject objectCreated = addAction.GameObject;
+
+            //create tuve
+            GameObject tubeObject = GameObject.Instantiate(Resources.Load("Prefab/Tube") as GameObject);
+            TubeArrow tube = tubeObject.GetComponent<TubeArrow>();
+            tube.link(objectSelected, objectCreated);
+        }
+
+        /**
+            Update write mode
+            Modify the texte of current selected object.
+
+        */
         private void updateWriteMode(ref MoveController moveObj, ref UniMoveController move) {
             //update psmove rotation
             moveObj.gameObject.transform.localRotation = new Quaternion(move.Orientation.x, -move.Orientation.y, -move.Orientation.z, move.Orientation.w);
@@ -299,14 +338,22 @@ namespace fr.unice.miage.og.flux
 
         }
 
-        private void visualisationModeUpdate(ref MoveController moveObj)
+        /**
+            Update the visualisation mode
+        */
+        private void updateVisualisationMode(ref MoveController moveObj)
         {
-            this.collisionObject.transform.localRotation = moveObj.gameObject.transform.localRotation;
+            this.objectSelected.transform.localRotation = moveObj.gameObject.transform.localRotation;
         }
 
-        private void rayUpdate(ref UniMoveController move, ref MoveController moveObj)
-        {
 
+        /**
+            Update the ray
+
+            Draw a ray from Psmove to retrieve the object selected.
+        */
+        private void updateRay(ref UniMoveController move, ref MoveController moveObj)
+        {
             Transform sphereTransform = moveObj.transform.Find("Sphere");
             Transform capsuleTransform = moveObj.transform.Find("Capsule");
             Vector3 heading = sphereTransform.position - capsuleTransform.transform.position;
@@ -325,8 +372,8 @@ namespace fr.unice.miage.og.flux
             if (move.GetButtonUp(PSMoveButton.Trigger))
             {
                 //set the position
-                if (this.collisionObject != null) { 
-                    Vector3 position = this.collisionObject.transform.localPosition;
+                if (this.objectSelected != null) { 
+                    Vector3 position = this.objectSelected.transform.localPosition;
                     this.moveAction.NewLocation = new Vector3(position.x, position.y, position.z);
                     base.managerListener.doAction(this.moveAction);
                 }
@@ -334,40 +381,42 @@ namespace fr.unice.miage.og.flux
                 deselectCollisionObject();
             }
 
-            if (this.collisionObject != null)
+            if (this.objectSelected != null)
             {
-                float distance = Vector3.Distance(moveObj.transform.position, this.collisionObject.transform.position);
-                float z = this.collisionObject.transform.localPosition.z;
+                float distance = Vector3.Distance(moveObj.transform.position, this.objectSelected.transform.position);
+                float z = this.objectSelected.transform.localPosition.z;
                 Vector3 location = moveObj.transform.position + direction * distance;
                 location.z = z;
-                this.collisionObject.transform.localPosition = location;
+                this.objectSelected.transform.localPosition = location;
             }
 
             Debug.DrawRay(sphereTransform.position, direction * 10, Color.green);
         }
 
+        /**
+            Update the selected object.
+        */
         private void selectCollisionObject(ref GameObject collisionObject)
         {
-            this.collisionObject = collisionObject;
-            Renderer r = this.collisionObject.GetComponent<Renderer>();
+            this.objectSelected = collisionObject;
+            Renderer r = this.objectSelected.GetComponent<Renderer>();
             r.material.SetColor("_Color", Color.blue);
         }
 
+
+        /**
+            Deselected the current selected object.
+        */
         private void deselectCollisionObject()
         {
-            if (this.collisionObject == null)
+            if (this.objectSelected == null)
             {
                 return;
             }
 
-            Renderer r = this.collisionObject.GetComponent<Renderer>();
+            Renderer r = this.objectSelected.GetComponent<Renderer>();
             r.material.SetColor("_Color", Color.gray);
-            this.collisionObject = null;
-        }
-
-        void HandleControllerDisconnected(object sender, EventArgs e)
-        {
-            // TODO: Remove this disconnected controller from the list and maybe give an update to the player
+            this.objectSelected = null;
         }
 
         void OnGUI()
@@ -386,6 +435,11 @@ namespace fr.unice.miage.og.flux
             else display = "No Bluetooth-connected controllers found. Make sure one or more are both paired and connected to this computer.";
 
             GUI.Label(new Rect(10, Screen.height - 100, 500, 100), display);
+        }
+
+        void HandleControllerDisconnected(object sender, EventArgs e)
+        {
+            // TODO: Remove this disconnected controller from the list and maybe give an update to the player
         }
     }
 }
