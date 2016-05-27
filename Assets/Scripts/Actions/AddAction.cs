@@ -19,7 +19,7 @@ namespace fr.unice.miage.og.actions
         public Material Material { get { return material; } set { material = value; } }
 
         //to load the ressource
-        private PrimitiveType primitiveType;
+        private PrimitiveType? primitiveType;
         private String path;
 
 
@@ -43,7 +43,7 @@ namespace fr.unice.miage.og.actions
             {
                 if (primitiveType != null)
                 {
-                    gameObject = GameObject.CreatePrimitive(primitiveType);
+                    gameObject = GameObject.CreatePrimitive((PrimitiveType) primitiveType);
                 }
                 else {
                     gameObject = Resources.Load(path) as GameObject;
