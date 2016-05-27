@@ -66,14 +66,8 @@ namespace fr.unice.miage.og.flux
                 // A: AddAction
                 if (UnityEngine.Input.GetKeyDown(KeyCode.A))
                 {
-                    //Create object 
-                    //GameObject subject = Instantiate(Resources.Load("Prefab/Sub_Subject")) as GameObject;
-                    //AddAction addAction = new AddAction("Prefab/Sub_subject", Vector3.zero, Quaternion.identity);
-                    AddAction addAction = new AddAction(PrimitiveType.Cube, new Vector3(0, 0, -8), Quaternion.identity);
-                    base.managerListener.doAction(addAction);
+                    addObject();
                     print("action: add");
-
-                    this.nodeCourant.Add(new Node(addAction.GameObject));
                 }
                 // D: RemoveAction
                 else if (UnityEngine.Input.GetKeyDown(KeyCode.D) && !deleteMode)
@@ -124,6 +118,21 @@ namespace fr.unice.miage.og.flux
                     
                 }
             }
+        }
+
+        private void addObject()
+        {
+            //Create object 
+            AddAction addAction = new AddAction("Prefab/Panel", new Vector3(0, 0, -8));
+            base.managerListener.doAction(addAction);
+            GameObject objectCreated = addAction.GameObject;
+
+            //create tuve
+            GameObject tubeObject = GameObject.Instantiate(Resources.Load("Prefab/Tube") as GameObject);
+            TubeArrow tube = tubeObject.GetComponent<TubeArrow>();
+            tube.link(select, objectCreated);
+
+            this.nodeCourant.Add(new Node(addAction.GameObject));
         }
 
         private void Select(GameObject gameobject) {
