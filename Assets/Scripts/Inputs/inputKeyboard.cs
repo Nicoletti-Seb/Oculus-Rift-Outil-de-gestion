@@ -3,20 +3,26 @@ using System.Collections;
 using System.Collections.Generic;
 using fr.unice.miage.og.selector;
 using fr.unice.miage.og.actions;
+using System;
+using System.Text;
 
 namespace fr.unice.miage.og.flux
 {
     public class InputKeyboard : Input
     {
         public float rotateSpeed = 10;
-        public float translateSpeed = 10;
+        public float translateSpeed = 25;
         public GameObject instance;
 
         private GameObject select;
         private Node nodeCourant;
+        
         private MoveAction move;
-        private RenameAction rename;
-        private bool delete;
+        private RenameAction renameAction;
+        
+        private bool deleteMode;
+        private bool writeMode;
+        private TextMesh textMesh;
 
         public void Start() {
             // creer et construire l'arbre
@@ -38,68 +44,84 @@ namespace fr.unice.miage.og.flux
 
         public void onKeyboardEvent(ref Event e)
         {
-            // Rename Action 
-            if (UnityEngine.Input.GetKey(KeyCode.F2))
-            {
-                this.rename = new RenameAction();
-                this.select.GetComponentInChildren<TextMesh>();
+            if (writeMode) {
+                updateWriteMode(ref e);
+                print("writemode");
+                return;
             }
-            // Sinon
-            else if(this.rename == null) {
-                // Action avec la touche "Controle"
-                if (UnityEngine.Input.GetKey(KeyCode.LeftControl))
+            // Rename Action 
+            else if (UnityEngine.Input.GetKey(KeyCode.F2))
+            {
+                textMesh = select.GetComponentInChildren<TextMesh>();
+                renameAction = new RenameAction(textMesh);
+                writeMode = true;
+            }
+            // Action avec la touche "Controle"
+            else if (UnityEngine.Input.GetKey(KeyCode.LeftControl)) {
+                // Selection des objets avec les fleches directionnelles
+                InputLeftControlAction();
+            }
+            // Action sans la touche "Controle"
+            else { 
+                // A: AddAction
+                if (UnityEngine.Input.GetKeyDown(KeyCode.A))
                 {
-                    // Selection des objets avec les fleches directionnelles
-                    InputLeftControlAction();
+                    //Create object 
+                    //GameObject subject = Instantiate(Resources.Load("Prefab/Sub_Subject")) as GameObject;
+                    //AddAction addAction = new AddAction("Prefab/Sub_subject", Vector3.zero, Quaternion.identity);
+                    AddAction addAction = new AddAction(PrimitiveType.Cube, new Vector3(0, 0, -8), Quaternion.identity);
+                    base.managerListener.doAction(addAction);
+                    print("action: add");
+
+                    this.nodeCourant.Add(new Node(addAction.GameObject));
                 }
-                // Sans la touche "Controle"
-                // Les racourcis
-                else
+                // D: RemoveAction
+                else if (UnityEngine.Input.GetKeyDown(KeyCode.D) && !deleteMode)
                 {
-                    // A: AddAction
-                    if (UnityEngine.Input.GetKeyDown(KeyCode.A))
-                    {
-                        //Create object 
-                        //GameObject subject = Instantiate(Resources.Load("Prefab/Sub_Subject")) as GameObject;
-                        AddAction addAction = new AddAction("Prefab/Sub_subject", Vector3.zero, Quaternion.identity);
-                        base.managerListener.doAction(addAction);
-                        print("action: add");
-                    }
-                    // D: RemoveAction
-                    else if (UnityEngine.Input.GetKeyDown(KeyCode.D) && !delete)
-                    {
-                        // Remove Action
-                        RemoveAction removeAction = new RemoveAction(this.select);
-                        base.managerListener.doAction(removeAction);
-                        print("action: remove");
+                    // Remove Action
+                    /*RemoveAction removeAction = new RemoveAction(this.select);
+                    base.managerListener.doAction(removeAction);
+                    print("action: remove");
 
-                        // Supprimer de l'arbre pour ne plus pouvoir le selectionner
-                        this.nodeCourant = this.nodeCourant.Remove();
+                    // Supprimer de l'arbre pour ne plus pouvoir le selectionner
+                    this.nodeCourant = this.nodeCourant.Remove();
+                    */
 
-                        // Selectionner le precedent
+                    // Remove Action
+                    RemoveAction removeAction = new RemoveAction(ref this.nodeCourant);
+                    base.managerListener.doAction(removeAction);
+                    print("action: remove");
+
+                    this.nodeCourant = removeAction.NodeCourant;
+
+                    // Selectionner le precedent
+                    if (this.nodeCourant == null) {
+                        Select(instance);
+                    } else {
                         Select(nodeCourant.Gameobject);
-                        delete = true;
                     }
-                    else if (UnityEngine.Input.GetKeyUp(KeyCode.D) && delete)
-                    {
-                        delete = false;
-                    }
-                    // U: UndoAction
-                    else if (UnityEngine.Input.GetKeyDown(KeyCode.U))
-                    {
-                        base.managerListener.undoAction();
-                        print("action: undo");
-                    }
-                    // R: RedoAction
-                    else if (UnityEngine.Input.GetKeyDown(KeyCode.R))
-                    {
-                        base.managerListener.redoAction();
-                        print("action: redo");
-                    }
-                    // Deplacer un objet selectionne avec les fleches directionnelles
-                    else {
-                        InputMoveAction();
-                    }
+                    deleteMode = true;
+                }
+                else if (UnityEngine.Input.GetKeyUp(KeyCode.D) && deleteMode)
+                {
+                    deleteMode = false;
+                }
+                // U: UndoAction
+                else if (UnityEngine.Input.GetKeyDown(KeyCode.U))
+                {
+                    base.managerListener.undoAction();
+                    print("action: undo");
+                }
+                // R: RedoAction
+                else if (UnityEngine.Input.GetKeyDown(KeyCode.R))
+                {
+                    base.managerListener.redoAction();
+                    print("action: redo");
+                }
+                // Deplacer un objet selectionne avec les fleches directionnelles
+                else {
+                    InputMoveAction();
+                    
                 }
             }
         }
@@ -137,16 +159,23 @@ namespace fr.unice.miage.og.flux
             // Selectionner le compo PARENT
             if (UnityEngine.Input.GetKey(KeyCode.UpArrow))
             {
-                Select(this.nodeCourant.GetParent().list[0].Gameobject);
-                // Remonter dans l'arbre
-                this.nodeCourant = this.nodeCourant.GetParent();
+                // cas special : user monte alors que Center ROOT select
+                if (this.nodeCourant.GetParent().GetSize() != 0)
+                {
+                    Select(this.nodeCourant.GetParent().list[0].Gameobject);
+                    // Remonter dans l'arbre
+                    this.nodeCourant = this.nodeCourant.GetParent();
+                }
             }
             // Selectionner le compo FILS
             if (UnityEngine.Input.GetKey(KeyCode.DownArrow))
             {
-                Select(this.nodeCourant.GetSon().list[0].Gameobject);
-                // Descendre dans l'arbre
-                this.nodeCourant = this.nodeCourant.GetSon();
+                // cas special : user descend alors que Center ROOT n'a pas de fils
+                if(this.nodeCourant.GetSon() != null) {
+                    Select(this.nodeCourant.GetSon().list[0].Gameobject);
+                    // Descendre dans l'arbre
+                    this.nodeCourant = this.nodeCourant.GetSon();
+                }
             }
         }
 
@@ -186,6 +215,38 @@ namespace fr.unice.miage.og.flux
                 move = null;
                 print("moveaction");
             }
+        }
+
+        private void updateWriteMode(ref Event e) {
+            // touche Escape pour valider et sortir de la selection
+            if (UnityEngine.Input.GetKey(KeyCode.Escape)) {
+                renameAction.NewName = this.textMesh.text;
+                base.managerListener.doAction(renameAction);
+
+                // quitte le mode ecriture
+                this.writeMode = false;
+                this.textMesh = null;                
+                return;
+            }
+
+            StringBuilder textPanel = new StringBuilder(this.textMesh.text);
+            
+            // touche effacer pour supprimer le dernier caractere
+            if (UnityEngine.Input.GetKey(KeyCode.Backspace)) {
+                textPanel.Length = (textPanel.Length > 0) ? textPanel.Length - 1 : 0;
+            }
+            // touche supp pour supprimer tout le texte
+            if (UnityEngine.Input.GetKey(KeyCode.Delete))
+            {
+                textPanel.Length = 0;
+            }
+            
+            // recupere le char du clavier
+            char c = e.character;
+            textPanel.Append(c);
+
+            //update the text panel
+            this.textMesh.text = textPanel.ToString();
         }
     }
     

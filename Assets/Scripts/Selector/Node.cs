@@ -1,12 +1,9 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using UnityEngine;
 
 namespace fr.unice.miage.og.selector
 {
-    class Node
+    public class Node
     {
         public GameObject gameobject;
         public Node parent;
@@ -50,12 +47,18 @@ namespace fr.unice.miage.og.selector
             if(GetSize() != 0) {
                 return this;
             } else {
-                return this.parent;
+                return GetParent();
             }
         }
         
         public Node GetCurrentNode() {
-            return this.list[index];
+            if (GetSize() == 0)
+            {
+                return this;
+            }
+            else {
+                return this.list[index];
+            }
         }
 
         public Node Next() {
@@ -78,9 +81,14 @@ namespace fr.unice.miage.og.selector
         }
 
         public Node GetSon() {
-            if (this.list[index].GetSize() == 0) {
+            if(GetSize() == 0) {
+                return Parent;
+            }
+            else if (this.list[index].GetSize() == 0)
+            {
                 return this;
-            } else {
+            }
+            else {
                 return this.list[index];
             }
         }
