@@ -259,7 +259,7 @@ namespace fr.unice.miage.og.flux
         */
         private void removeObject() {
             //Remove object
-            if (this.objectSelected != null)
+            if (this.objectSelected != null && !this.objectSelected.name.Equals("Center") )
             {
                 RemoveAction removeAction = new RemoveAction(this.objectSelected);
                 base.managerListener.doAction(removeAction);
