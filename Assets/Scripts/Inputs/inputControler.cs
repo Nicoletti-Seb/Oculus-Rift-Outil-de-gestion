@@ -55,7 +55,7 @@ namespace fr.unice.miage.og.flux
 			else { 
 					if (UnityEngine.Input.GetKeyDown(KeyCode.Joystick1Button3)) // Y button
 				{
-					AddAction addAction = new AddAction(PrimitiveType.Cube, new Vector3(0, 0, -8), Quaternion.identity);
+					AddAction addAction = new AddAction(PrimitiveType.Cube, new Vector3(0, 0, -8));
 					base.managerListener.doAction(addAction);
 					print("action: add");
 
