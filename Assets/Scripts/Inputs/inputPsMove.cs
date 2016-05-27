@@ -56,6 +56,7 @@ namespace fr.unice.miage.og.flux
 
         //Object Selection
         private GameObject objectSelected;
+        private Boolean buttonTriggerIsDown;
 
         //Visualisation mode
         private bool visualisationMode;
@@ -120,7 +121,6 @@ namespace fr.unice.miage.og.flux
                 {
                     moves.Add(move);
 
-                    
                     move.OnControllerDisconnected += HandleControllerDisconnected;
 
                     move.InitOrientation();
@@ -153,7 +153,11 @@ namespace fr.unice.miage.og.flux
                 if (move.Disconnected) continue;
 
 
+                //Update state button trigger
+                updateButtonTrigger(ref move);
 
+
+                //Write mode
                 if (writeMode) {
                     updateWriteMode(ref moveObj, ref move);
                     return;
@@ -185,7 +189,7 @@ namespace fr.unice.miage.og.flux
                         desactivedVisualisationMode();
                     }
                 }
-                else if (move.GetButtonDown(PSMoveButton.PS) ||  move.GetButtonDown(PSMoveButton.Move) )
+                else if (move.GetButtonDown(PSMoveButton.PS) )
                 {
                     //Reset orientation
                     move.ResetOrientation();
@@ -203,7 +207,7 @@ namespace fr.unice.miage.og.flux
                 // Set the rumble based on how much the trigger is down
                 moveObj.gameObject.transform.localRotation = new Quaternion(move.Orientation.x, -move.Orientation.y, -move.Orientation.z, move.Orientation.w);
 
-
+                //Update modes
                 if (visualisationMode)
                 {
                     updateVisualisationMode(ref moveObj);
@@ -214,6 +218,19 @@ namespace fr.unice.miage.og.flux
                 }
 
             }
+        }
+
+        private void updateButtonTrigger(ref UniMoveController move) {
+            if (move.GetButtonDown(PSMoveButton.Trigger))
+            {
+                buttonTriggerIsDown = true;
+            }
+
+            if (move.GetButtonUp(PSMoveButton.Trigger))
+            {
+                buttonTriggerIsDown = false;
+            }
+
         }
 
 
@@ -237,7 +254,6 @@ namespace fr.unice.miage.og.flux
             visualisationMode = false;
             this.objectSelected.transform.localPosition = positionSave;
             this.objectSelected.transform.localRotation = rotationSave;
-            deselectCollisionObject();
         }
 
         /**
@@ -305,7 +321,6 @@ namespace fr.unice.miage.og.flux
 
                 this.writeMode = false;
                 this.textMesh = null;
-                deselectCollisionObject();
                 return;
             }
 
@@ -362,26 +377,29 @@ namespace fr.unice.miage.og.flux
             Ray ray = new Ray(sphereTransform.position, direction);
 
             Boolean haveCollision = Physics.Raycast(ray, out hit);
-            if (haveCollision && move.GetButtonDown(PSMoveButton.Trigger))
+            if (haveCollision && move.GetButtonDown(PSMoveButton.Move))
             {
-                GameObject obj = hit.collider.gameObject;
-                selectCollisionObject(ref obj);
-                this.moveAction = new MoveAction(obj);
-            }
 
-            if (move.GetButtonUp(PSMoveButton.Trigger))
-            {
-                //set the position
-                if (this.objectSelected != null) { 
-                    Vector3 position = this.objectSelected.transform.localPosition;
-                    this.moveAction.NewLocation = new Vector3(position.x, position.y, position.z);
-                    base.managerListener.doAction(this.moveAction);
+                if (objectSelected == null || objectSelected != hit.collider.gameObject)
+                {
+                    GameObject obj = hit.collider.gameObject;
+                    selectCollisionObject(ref obj);
+                    this.moveAction = new MoveAction(obj);
+                }
+                else {
+                    if (this.objectSelected != null)
+                    {
+                        Vector3 position = this.objectSelected.transform.localPosition;
+                        this.moveAction.NewLocation = new Vector3(position.x, position.y, position.z);
+                        base.managerListener.doAction(this.moveAction);
+                    }
+
+                    deselectCollisionObject();
                 }
 
-                deselectCollisionObject();
             }
 
-            if (this.objectSelected != null)
+            if (this.objectSelected != null && buttonTriggerIsDown)
             {
                 float distance = Vector3.Distance(moveObj.transform.position, this.objectSelected.transform.position);
                 float z = this.objectSelected.transform.localPosition.z;
@@ -398,6 +416,11 @@ namespace fr.unice.miage.og.flux
         */
         private void selectCollisionObject(ref GameObject collisionObject)
         {
+
+            if (objectSelected != null) {
+                deselectCollisionObject();
+            }
+
             this.objectSelected = collisionObject;
             Renderer r = this.objectSelected.GetComponent<Renderer>();
             r.material.SetColor("_Color", Color.blue);
